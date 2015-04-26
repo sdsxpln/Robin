@@ -1,0 +1,2 @@
+---- B_P0_SPI0_SCK Matches (1 in 1 files) ----
+Hardware_defs.h (inc):SBIT(SPI0_SCK,  SFR_P0, B_P0_SPI0_SCK);

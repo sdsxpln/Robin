@@ -1,0 +1,46 @@
+CX51 COMPILER V9.51   APPLICATION_DEFS                                                     04/26/2015 18:30:37 PAGE 1   
+
+
+CX51 COMPILER V9.51, COMPILATION OF MODULE APPLICATION_DEFS
+OBJECT MODULE PLACED IN D:\usr\cygwin64\home\ticheng\my_repos\robin\examples\transparent_trans\application_defs.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\CX51.exe D:\usr\cygwin64\home\ticheng\my_repos\robin\examples\transparent_trans\app
+                    -lication_defs.h
+
+line level    source
+
+   1          /*! @file application_defs.h
+   2           * @brief This file contains hardware specific definitions defined by the application.
+   3           *
+   4           * @b COPYRIGHT
+   5           * @n Silicon Laboratories Confidential
+   6           * @n Copyright 2012 Silicon Laboratories, Inc.
+   7           * @n http://www.silabs.com
+   8           */
+   9          
+  10          #ifndef APPLICATION_DEFS_H_
+  11          #define APPLICATION_DEFS_H_
+  12          
+  13          
+  14          #define lSys_SysClockFreq_c (24500000.0)
+  15          #define lSys_RadioCrystalFreq_c (30000000.0)
+  16          
+  17          
+  18          #endif /* APPLICATION_DEFS_H_ */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+CX51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

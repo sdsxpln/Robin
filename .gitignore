@@ -30,3 +30,22 @@
 
 # Debug files
 *.dSYM/
+
+#Siliconlab
+#*.#1
+#*.#2
+#*.#3
+#*.IAB
+#*.IAD
+#*.IMB
+#*.IMD
+#*.M51
+#*.PFI
+#*.PO
+#*.PR
+#*.PRI
+#*.PS
+#*.SearchResults
+#*.WK3
+#*.wsp
+#*.out

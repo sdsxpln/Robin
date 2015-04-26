@@ -1,0 +1,306 @@
+C51 COMPILER V9.51   MAIN                                                                  04/26/2015 18:55:47 PAGE 1   
+
+
+C51 COMPILER V9.51, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\c51.exe main.c DB OE BR SMALL OPTIMIZE(11,SIZE) DEFINE(SILABS_PLATFORM_WMB912) DEFI
+                    -NE(SILABS_WMCU_SI106x) INCDIR(D:\usr\SiLabs\MCU\Inc;D:\usr\cygwin64\home\ticheng\my_repos\robin\inc)
+
+line level    source
+
+   1          /*! @file main.c
+   2           * @brief The main.c file of the Empty Project example for Si446x devices.
+   3           *
+   4           * Contains the initialization of the MCU & the radio.
+   5           * @n The main loop controls the program flow & the radio.
+   6           *
+   7           * @b CREATED
+   8           * @n Silicon Laboratories Hungary Ltd.
+   9           *
+  10           * @b COPYRIGHT
+  11           * @n Silicon Laboratories Confidential
+  12           * @n Copyright 2012 Silicon Laboratories, Inc.
+  13           * @n http://www.silabs.com
+  14           *
+  15           */
+  16          
+  17          #include "bsp.h"
+  18          
+  19          /*------------------------------------------------------------------------*/
+  20          /*                            Local Macros                                */
+  21          /*------------------------------------------------------------------------*/
+  22          
+  23          /*------------------------------------------------------------------------*/
+  24          /*                          Local variables                               */
+  25          /*------------------------------------------------------------------------*/
+  26          
+  27          /*------------------------------------------------------------------------*/
+  28          /*                      Local function prototypes                         */
+  29          /*------------------------------------------------------------------------*/
+  30          void vPlf_McuInit  (void);
+  31          void vInitializeHW (void);
+  32          
+  33          /*------------------------------------------------------------------------*/
+  34          /*                          Function implementations                      */
+  35          /*------------------------------------------------------------------------*/
+  36          
+  37          /** \fn void main(void)
+  38           * \brief The main function of the demo.
+  39           *
+  40           * \todo Create description
+  41           */
+  42          void main(void)
+  43          {
+  44   1        xdata U8 buf[] = {0x7E,0x05,0x01, 0x02, 0x03, 0x7D, 0x5D, 0x00, 0x83, 0x7E};
+  45   1        U16 i=65536;
+  46   1        // Initialize the Hardware and Radio
+  47   1        vInitializeHW();
+  48   1      
+  49   1        // Start RX
+  50   1        vRadio_StartRX(pRadioConfiguration->Radio_ChannelNumber);
+  51   1        while (TRUE)
+  52   1        {
+  53   2      
+  54   2              Uart_revc_Radio_trans();
+C51 COMPILER V9.51   MAIN                                                                  04/26/2015 18:55:47 PAGE 2   
+
+  55   2      
+  56   2          if(gRadio_CheckReceived())
+  57   2              {
+  58   3                      if(Uart_trans_Radio_recv()==0)
+  59   3                      //if(LED)
+  60   3                      //LED = ILLUMINATE;
+  61   3                      //else
+  62   3                      LED ^= EXTINGUISH;
+  63   3              }
+  64   2      //      Uart_trans_Radio_recv_test(buf);
+  65   2        }
+  66   1      }
+  67          
+  68          /**
+  69           *  Calls the init functions for the used peripherals/modules
+  70           *
+  71           *  @note Should be called at the beginning of the main().
+  72           *
+  73           */
+  74          void vInitializeHW(void)
+  75          {
+  76   1        // Initialize the MCU peripherals
+  77   1        vPlf_McuInit();
+  78   1      
+  79   1      
+  80   1        // Initialize the Radio
+  81   1        vRadio_Init();
+  82   1      
+  83   1        EA = 1;
+  84   1      }
+  85          
+  86          /** \fn void MCU_Init(void)
+  87           *  \brief Initializes ports of the MCU.
+  88           *
+  89           *  \return None
+  90           *
+  91           *  \note It has to be called from the Initialization section.
+  92           *  \todo Create description
+  93           */
+  94          void vPlf_McuInit(void)
+  95          {
+  96   1        U16 wDelay = 0xFFFF;
+  97   1      
+  98   1        /* disable watchdog */
+  99   1        PCA0MD &= (~M_WDTE);
+ 100   1      
+ 101   1        /* Init Internal Precision Oscillator (24.5MHz) */
+ 102   1        SFRPAGE = LEGACY_PAGE;
+ 103   1        FLSCL   = M_BYPASS;
+ 104   1      
+ 105   1        OSCICN |= M_IOSCEN; // p7: Internal Prec. Osc. enabled
+ 106   1        CLKSEL  = 0x00;     // Int. Prec. Osc. selected (24.5MHz)
+ 107   1      
+ 108   1      #if ((defined SILABS_PLATFORM_RFSTICK) || (defined SILABS_PLATFORM_LCDBB))
+                P0MDOUT = M_P0_UART_TX; //PBs: P0.0-P0.3 (same as RF_GPIO0-3) used as input
+              //  P1MDOUT = M_P1_SPI1_SCK | M_P1_SPI1_MOSI | M_P1_RF_NSEL | M_P1_RF_PWRDN;
+              #if (defined SILABS_PLATFORM_LCDBB)
+                P1MDOUT |= M_P1_LCD_NSEL | M_P1_LCD_A0;
+              #endif
+              
+                P0SKIP  = (~M_P0_UART_TX) & (~M_P0_UART_RX);// & (~M_P0_I2C_SCL) & (~M_P0_I2C_SDA); //skip all on port, 
+             -but UART & SMBus
+C51 COMPILER V9.51   MAIN                                                                  04/26/2015 18:55:47 PAGE 3   
+
+              //  P1SKIP  = (~M_P1_SPI1_SCK) & (~M_P1_SPI1_MISO) & (~M_P1_SPI1_MOSI); //skip all on port, but SPI1
+              //  P2SKIP  = (~M_P2_BZ1); //skip all on port, but buzzer with PCA CEX0
+              #elif ((defined SILABS_MCU_DC_EMIF_F930) || (SILABS_MCU_DC_EMIF_F930_STANDALONE))
+              
+              #if (defined SILABS_MCU_DC_EMIF_F930)
+                // Init master hw SPI interface (SCK clock: 2.45MHz)
+                // Init SPI0 (LCD)
+                SPI0CFG = M_MSTEN0; //p6: SPI0 enable master mode
+                SPI0CN  = M_SPI0EN; //p1: SPI0 enable
+                SPI0CKR = 0x04;     //fSCK = SYSCLK / 10
+              #endif
+              
+                P0MDOUT = M_P0_UART_TX | M_P0_LED1 | M_P0_LED2 | M_P0_LED3 | M_P0_LED4;
+                P1MDOUT = M_P1_SPI1_SCK | M_P1_SPI1_MOSI | M_P1_RF_NSEL;
+                P2MDOUT = M_P2_RF_PWRDN;
+              #if (defined SILABS_MCU_DC_EMIF_F930)
+                P1MDOUT |= M_P1_SPI0_SCK | M_P1_SPI0_MOSI;
+                P2MDOUT |=  M_P2_LCD_NSEL | M_P2_LCD_A0;
+              #endif
+              
+                P0SKIP  = (~M_P0_UART_TX) & (~M_P0_UART_RX) ; //skip all on port, but UART
+                P1SKIP  = (~M_P1_SPI1_SCK) & (~M_P1_SPI1_MISO) & (~M_P1_SPI1_MOSI); //skip all on port, but SPI1
+                P2SKIP  = (~M_P2_I2C_SCL) & (~M_P2_I2C_SDA); //skip all on port, but SMBus
+              #if (defined SILABS_MCU_DC_EMIF_F930)
+                P1SKIP  &= (~M_P1_SPI0_SCK) & (~M_P1_SPI0_MISO) & (~M_P1_SPI0_MOSI); //do not skip SPI0 for LCD
+              #endif
+              
+              #elif (defined SILABS_PLATFORM_WMB930)
+                /* Port IN/OUT init */
+                P0MDOUT = 0x80;
+                P1MDOUT = 0xF5;
+                P2MDOUT = 0x49;
+              
+                P0SKIP  = 0xCF;
+                P1SKIP  = 0x18;
+                P2SKIP  = 0xB9;
+              #elif (defined SILABS_PLATFORM_WMB912)
+ 153   1        /* Port IN/OUT init */
+ 154   1        /* P0: 2,3,4,6,7 push-pull */
+ 155   1        /* P1: 0,2,3,6 push-pull */
+ 156   1        /* P2: no push-pull */
+ 157   1        P0MDOUT   = (0xDC | M_P0_UART_TX) & (~(1<<B_P0_RF_NIRQ));
+ 158   1        P1MDOUT   = 0x4D | M_P1_LED;
+ 159   1      
+ 160   1        /* P0: 0,1,2,3,6,7 skipped */
+ 161   1        /* P1: 3,6 skipped */
+ 162   1        /* P2: 7 skipped */
+ 163   1        P0SKIP    = 0xCF & (~M_P0_UART_TX) & (~M_P0_UART_RX);
+ 164   1        P1SKIP    = 0x48 | M_P1_LED;
+ 165   1      
+ 166   1        /* Set SMBUS clock speed */
+ 167   1        Set115200bps_24MHZ5;
+ 168   1        /* Start Timer1 */
+ 169   1        TR1 = 1;
+ 170   1      
+ 171   1      
+ 172   1        /* Initialize SMBus */
+ 173   1        vSmbus_InitSMBusInterface();
+ 174   1        /* Initialize UART */
+ 175   1        Comm_IF_EnableUART();
+ 176   1        /* Initialize INT0 */
+ 177   1        //Ext_Interrupt0_Init(B_P0_RF_NIRQ);
+C51 COMPILER V9.51   MAIN                                                                  04/26/2015 18:55:47 PAGE 4   
+
+ 178   1      
+ 179   1      #else
+              #error TO BE WRITTEN FOR OTHER PLARFORMS!
+              #endif
+ 182   1      
+ 183   1        P0MDIN  = 0xFF; // All pin configured as digital port
+ 184   1        P1MDIN  = 0xFF; // All pin configured as digital port
+ 185   1      #if !(defined SILABS_PLATFORM_WMB912)
+                P2MDIN  = 0xFF; // All pin configured as digital port
+              #endif
+ 188   1      
+ 189   1        /* Set Drive Strenght */
+ 190   1        SFRPAGE = CONFIG_PAGE;
+ 191   1        P0DRV   = 0x00;
+ 192   1        P1DRV   = 0x00;
+ 193   1      #if !(defined SILABS_PLATFORM_WMB912)
+                P2DRV   = 0x00;
+              #endif
+ 196   1      
+ 197   1        SFRPAGE = LEGACY_PAGE;
+ 198   1      
+ 199   1        /* Crossbar configuration */
+ 200   1        XBR0    = M_URT0E | M_SMB0E; //p0: UART enabled on XBAR
+ 201   1        XBR1    = M_SPI1E ; //p6: SPI1 enabled on XBAR
+ 202   1      #if ((defined SILABS_PLATFORM_RFSTICK) || (defined SILABS_PLATFORM_LCDBB))
+                XBR1    |= (1 << BF_PCA0ME_0); //p0: PCA CEX0 enabled on XBAR
+              #elif(defined SILABS_MCU_DC_EMIF_F930)
+                XBR0    |= M_SPI0E ; //p6: SPI1 enabled on XBAR
+              #elif (defined SILABS_MCU_DC_EMIF_F930_STANDALONE)
+              
+              #elif (defined SILABS_PLATFORM_WMB930)
+                XBR1    |= (1 << BF_PCA0ME_0); //p0: PCA CEX0 enabled on XBAR
+                XBR0    |= M_SPI0E;
+              #elif (defined SILABS_PLATFORM_WMB912)
+ 212   1      
+ 213   1      #else
+              #error TO BE WRITTEN FOR OTHER PLARFORMS!
+              #endif
+ 216   1        XBR2    = M_XBARE; //p6: XBAR enable
+ 217   1      
+ 218   1        /* latch all inputs to '1' */
+ 219   1        P0      = ~P0MDOUT;
+ 220   1        P1      = ~P1MDOUT;
+ 221   1      #if !(defined SILABS_PLATFORM_WMB912)
+                P2      = ~P2MDOUT;
+              #endif
+ 224   1      
+ 225   1        /* set all output to its default state */
+ 226   1        LED       = ILLUMINATE;
+ 227   1      #if !(defined SILABS_PLATFORM_WMB912)
+                LED2      = EXTINGUISH;
+                LED3      = EXTINGUISH;
+                LED4      = EXTINGUISH;
+              #endif
+ 232   1        RF_NSEL   = TRUE;
+ 233   1        RF_PWRDN  = FALSE;
+ 234   1      
+ 235   1        /* SPI1 & SPI0 Config & Enable */
+ 236   1        SPI0CFG   = 0x40;
+ 237   1        SPI1CFG   = 0x40;
+ 238   1      #if !(defined SILABS_PLATFORM_WMB912)
+                SPI0CN    = 0x01;
+C51 COMPILER V9.51   MAIN                                                                  04/26/2015 18:55:47 PAGE 5   
+
+              #else
+ 241   1        SPI0CN    = 0x00;
+ 242   1      #endif
+ 243   1        SPI1CN    = 0x01;
+ 244   1        SPI0CKR   = 0x0B;
+ 245   1        SPI1CKR   = 0x0B;
+ 246   1      
+ 247   1        /* De-select radio SPI */
+ 248   1        vSpi_SetNsel(eSpi_Nsel_RF);
+ 249   1      
+ 250   1      
+ 251   1        /* Startup delay */
+ 252   1        for (; wDelay; wDelay--)  ;
+ 253   1      
+ 254   1      }
+ 255          
+ 256          #ifdef SDCC
+              /**
+               * \brief External startup function of SDCC.
+               *
+               * It performs operations
+               * prior static and global variable initialization.
+               * Watchdog timer should be disabled this way, otherwise it
+               * can expire before variable initialization is carried out,
+               * and may prevent program execution jumping into main().
+               *
+               * \param None
+               * \return None
+               */
+              void _sdcc_external_startup(void)
+              {
+                PCA0MD &= ~0x40;      // Disable Watchdog timer
+              }
+              #endif
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    213    ----
+   CONSTANT SIZE    =     10    ----
+   XDATA SIZE       =   ----      10
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
